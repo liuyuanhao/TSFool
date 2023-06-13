@@ -30,7 +30,7 @@ def TSFool(model, X, Y, K=2, T=30, F=0.1, eps=0.1, N=20, P=0.9, C=1, target=-1, 
     """
 
     # ----------------- Build, Run and Compare WFA and target RNN Model --------------- #
-
+    adv_index = []
     # build and run WFA
     abst_alphabet, initial_vec, trans_matrices, final_vec = build_WFA(model, X, Y, K, T, F, details)
     wfa_output = run_WFA(X, Y, abst_alphabet, initial_vec, trans_matrices, final_vec)
@@ -116,7 +116,6 @@ def TSFool(model, X, Y, K=2, T=30, F=0.1, eps=0.1, N=20, P=0.9, C=1, target=-1, 
                     current_abst_bias += abs(int(abst_alphabet[k, j]) - int(abst_alphabet[i, j]))
                 abst_bias.append(current_abst_bias)
             candidate_samples_index = np.argsort(abst_bias)
-
             current_count = 0
             for candidate_sample_index in candidate_samples_index:
 
@@ -126,7 +125,8 @@ def TSFool(model, X, Y, K=2, T=30, F=0.1, eps=0.1, N=20, P=0.9, C=1, target=-1, 
                     continue
                 current_negative_x = copy.deepcopy(np.array(X[i]))  # initialized as the sensitive negative sample
                 current_positive_x = X[candidate_sample_index]  # initialized as the target positive sample
-
+                adv_index.append(candidate_sample_index)
+                print(candidate_sample_index)
                 # iterative sampling between (variable) pos and neg samples
                 while True:
                     sampled_instant_X = []
@@ -176,6 +176,9 @@ def TSFool(model, X, Y, K=2, T=30, F=0.1, eps=0.1, N=20, P=0.9, C=1, target=-1, 
                         candidate_perturbation_X.append(sampling_bias_x)
                         break
 
+
+
+
                 current_count += 1
                 if current_count >= C:
                     break
@@ -202,7 +205,7 @@ def TSFool(model, X, Y, K=2, T=30, F=0.1, eps=0.1, N=20, P=0.9, C=1, target=-1, 
         adv_X.extend(current_adv_X)
         adv_Y.extend(current_adv_Y)
 
-    return np.array(adv_X), np.array(adv_Y), np.array(target_positive_sample_X)
+    return np.array(adv_X), np.array(adv_Y), np.array(target_positive_sample_X), adv_index
 
 
 if __name__ == '__main__':
@@ -211,4 +214,5 @@ if __name__ == '__main__':
     dataset_name = 'ECG200'
     X = np.load(f'datasets/preprocessed/{dataset_name}/{dataset_name}_TEST_X.npy')
     Y = np.load(f'datasets/preprocessed/{dataset_name}/{dataset_name}_TEST_Y.npy')
-    adv_X, adv_Y, target_X = TSFool(model, X, Y, K=2, T=30, F=0.1, eps=0.01, N=20, P=0.9, C=1, target=-1, details=False)
+    adv_X, adv_Y, target_X, index = TSFool(model, X, Y, K=2, T=30, F=0.1, eps=0.01, N=20, P=0.9, C=1, target=-1, details=False)
+    print(index)
