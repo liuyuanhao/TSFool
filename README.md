@@ -21,7 +21,7 @@
 
 ### Get & Run
 ```cmd
-$ git clone https://github.com/FlaAI/TSFool.git
+$ git clone https://github.com/liuyuanhao/TSFool.git
 $ cd TSFool
 $ python
   >>> # load your target model and dataset #
