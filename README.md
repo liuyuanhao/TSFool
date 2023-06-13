@@ -26,7 +26,7 @@ $ cd TSFool
 $ python
   >>> # load your target model and dataset #
   >>> from main import TSFool
-  >>> adv_X, target_Y, target_X = TSFool(model, X, Y)
+  >>> adv_X, target_Y, target_X, adv_index = TSFool(model, X, Y) ##2023.6.13 update added the return value adv_index to TSFool to find the original sample of the adversarial sample.
 ```
 
 ### Function
