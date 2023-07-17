@@ -3,11 +3,12 @@ from pylab import *
 import numpy as np
 import copy
 from WFA import build_WFA, run_WFA, calculate_average_input_distance
+from NFA import build_NFA, run_NFA 
+from FSM import build_FSM, run_FSM
 
 torch.manual_seed(1)
 
-
-def TSFool(model, X, Y, K=2, T=30, F=0.1, eps=0.1, N=20, P=0.9, C=1, target=-1, details=False):
+def TSFool(model, X, Y, automaton_type='WFA', K=2, T=30, F=0.1, eps=0.1, N=20, P=0.9, C=1, target=-1, details=False):
     r"""
         Arguments:
             model (nn.Module): target rnn classifier
@@ -29,11 +30,25 @@ def TSFool(model, X, Y, K=2, T=30, F=0.1, eps=0.1, N=20, P=0.9, C=1, target=-1, 
             details (bool): if True, print the details of the attack process
     """
 
+    # Depending on the automaton type, use different functions
+    if automaton_type == 'WFA':
+        build_automaton = build_WFA
+        run_automaton = run_WFA
+    elif automaton_type == 'FSM':
+        build_automaton = build_FSM
+        run_automaton = run_FSM
+    elif automaton_type == 'NFA':
+        build_automaton = build_NFA
+        run_automaton = run_NFA
+    else:
+        raise ValueError(f"Invalid automaton_type: {automaton_type}")
+
+
     # ----------------- Build, Run and Compare WFA and target RNN Model --------------- #
     adv_index = []
     # build and run WFA
-    abst_alphabet, initial_vec, trans_matrices, final_vec = build_WFA(model, X, Y, K, T, F, details)
-    wfa_output = run_WFA(X, Y, abst_alphabet, initial_vec, trans_matrices, final_vec)
+    abst_alphabet, initial_vec, trans_matrices, final_vec = build_automaton(model, X, Y, K, T, F, details)
+    wfa_output = run_automaton(X, Y, abst_alphabet, initial_vec, trans_matrices, final_vec)
     rep_model_output = torch.from_numpy(wfa_output)
     rep_model_pred_y = torch.max(rep_model_output, 1)[1].data.numpy()
 
@@ -214,5 +229,5 @@ if __name__ == '__main__':
     dataset_name = 'ECG200'
     X = np.load(f'datasets/preprocessed/{dataset_name}/{dataset_name}_TEST_X.npy')
     Y = np.load(f'datasets/preprocessed/{dataset_name}/{dataset_name}_TEST_Y.npy')
-    adv_X, adv_Y, target_X, index = TSFool(model, X, Y, K=2, T=30, F=0.1, eps=0.01, N=20, P=0.9, C=1, target=-1, details=False)
+    adv_X, adv_Y, target_X, index = TSFool(model, X, Y, automaton_type='WFA', K=2, T=30, F=0.1, eps=0.01, N=20, P=0.9, C=1, target=-1, details=True)
     print(index)
